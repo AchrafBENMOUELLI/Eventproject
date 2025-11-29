@@ -1,15 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 export type FeedbackDocument = Feedback & Document;
 
-@Schema() 
+@Schema()
 export class Feedback {
   @Prop({ required: true })
   id_user: number;
 
-  @Prop({ required: true })
-  id_event: number;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Eventy', required: true })
+  id_event: MongooseSchema.Types.ObjectId;  // ← Référence ObjectId
 
   @Prop({ required: true })
   content: string;

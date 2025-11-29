@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const CreateFeedbackSchema = z.object({
   id_user: z.number().int().positive(),
-  id_event: z.number().int().positive(),
+  id_event: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid MongoDB ObjectId'),
   content: z.string().min(3).max(500),
   rate: z.number().min(1).max(5),
   date: z.coerce.date(),

@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Feedback, FeedbackDocument } from './schemas/feedback.schema';
+import { Eventy, EventDocument } from '../event/schemas/event.schema';
 import type { CreateFeedbackDto } from './dto/create-feedback.dto';
 import type { UpdateFeedbackDto } from './dto/update-feedback.dto';
 
@@ -9,13 +10,21 @@ import type { UpdateFeedbackDto } from './dto/update-feedback.dto';
 export class FeedbackService {
   constructor(
     @InjectModel(Feedback.name) 
-    private feedbackModel: Model<FeedbackDocument>
+    private feedbackModel: Model<FeedbackDocument>,
+    @InjectModel(Eventy.name)
+    private eventModel: Model<EventDocument>
   ) {}
 
   ////////////////////////////////////
   // CREATE
   ////////////////////////////////////
   async create(createFeedbackDto: CreateFeedbackDto): Promise<Feedback> {
+    // Vérifier que l'événement existe
+    const eventExists = await this.eventModel.findById(createFeedbackDto.id_event).exec();
+    if (!eventExists) {
+      throw new NotFoundException(`Event with ID ${createFeedbackDto.id_event} not found`);
+    }
+
     const createdFeedback = new this.feedbackModel(createFeedbackDto);
     return createdFeedback.save();
   }
@@ -48,7 +57,7 @@ export class FeedbackService {
   ////////////////////////////////////
   // READ BY EVENT
   ////////////////////////////////////
-  async findByEvent(id_event: number): Promise<Feedback[]> {
+  async findByEvent(id_event: string): Promise<Feedback[]> {
     return this.feedbackModel.find({ id_event }).exec();
   }
 
