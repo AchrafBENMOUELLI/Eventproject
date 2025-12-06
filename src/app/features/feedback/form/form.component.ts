@@ -78,6 +78,7 @@ export class FormComponent implements OnInit {
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FeedbackService } from '../../../shared/data/feedback.service';
+import { AuthService } from '../../../shared/data/auth.service';
 import { Feedback } from '../../../models/feedback';
 
 @Component({
@@ -86,10 +87,9 @@ import { Feedback } from '../../../models/feedback';
   styleUrls: ['./form.component.css']
 })
 export class FormComponent implements OnInit {
-
   feedback: Feedback = {
-    id_user: 1,
-    id_event: '',      
+    id_user: '',       // ← Sera rempli automatiquement
+    id_event: '',      // ← Récupéré depuis l'URL
     content: '',
     rate: 0,
     date: new Date()
@@ -97,15 +97,28 @@ export class FormComponent implements OnInit {
 
   constructor(
     private feedbackService: FeedbackService,
+    private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
 
   ngOnInit() {
-    // Récupérer l'ID de l'événement depuis l'URL (sans le +)
+    // Vérifier si l'utilisateur est connecté
+    const currentUser = this.authService.getCurrentUser();
+
+    if (!currentUser) {
+      alert('⚠️ Vous devez être connecté pour laisser un commentaire');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    // Remplir automatiquement l'id_user
+    this.feedback.id_user = currentUser._id!;
+
+    // Récupérer l'ID de l'événement depuis l'URL
     const eventId = this.route.snapshot.paramMap.get('eventId');
     if (eventId) {
-      this.feedback.id_event = eventId;  // ← string, pas number
+      this.feedback.id_event = eventId;
     } else {
       alert('❌ ID de l\'événement manquant');
       this.router.navigate(['/events']);

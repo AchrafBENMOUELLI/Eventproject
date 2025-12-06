@@ -71,6 +71,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { EventsService } from '../../../shared/data/events.service';
 import { FeedbackService } from '../../../shared/data/feedback.service';
+import { AuthService } from '../../../shared/data/auth.service';
 import { Eventy } from '../../../models/eventy';
 import { Feedback } from '../../../models/feedback';
 
@@ -82,22 +83,18 @@ import { Feedback } from '../../../models/feedback';
 export class DetailEventComponent implements OnInit {
   currentEvent: Eventy | null = null;
   feedbacks: Feedback[] = [];
-  eventId: string = '';  // ← string au lieu de number
+  eventId: string = '';
 
   constructor(
     private route: ActivatedRoute,
     private eventService: EventsService,
-    private feedbackService: FeedbackService
+    private feedbackService: FeedbackService,
+    public authService: AuthService  // ← public pour l'utiliser dans le template
   ) {}
 
   ngOnInit() {
-    // Récupérer l'ID de l'événement depuis l'URL
-    this.eventId = this.route.snapshot.params['id'];  // ← Pas de + devant
-
-    // Charger l'événement
+    this.eventId = this.route.snapshot.params['id'];
     this.loadEvent();
-
-    // Charger les feedbacks
     this.loadFeedbacks();
   }
 
@@ -120,7 +117,6 @@ export class DetailEventComponent implements OnInit {
   // Charger les feedbacks de cet événement
   /////////////////////////////////////////////////
   private loadFeedbacks() {
-    // Utiliser la méthode du service qui récupère les feedbacks par événement
     this.feedbackService.getFeedbacksByEvent(this.eventId).subscribe({
       next: (feedbacks: Feedback[]) => {
         this.feedbacks = feedbacks;
@@ -133,14 +129,28 @@ export class DetailEventComponent implements OnInit {
   }
 
   /////////////////////////////////////////////////
+  // Vérifier si l'utilisateur peut modifier/supprimer le feedback
+  /////////////////////////////////////////////////
+  canEditFeedback(feedback: Feedback): boolean {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) return false;
+
+    // L'utilisateur peut modifier son propre feedback OU l'admin peut tout modifier
+    const feedbackUserId = typeof feedback.id_user === 'string'
+      ? feedback.id_user
+      : feedback.id_user._id;
+
+    return currentUser._id === feedbackUserId || this.authService.isAdmin();
+  }
+
+  /////////////////////////////////////////////////
   // Supprimer un feedback
   /////////////////////////////////////////////////
-  onDeleteFeedback(feedbackId: string) {  // ← string au lieu de number
+  onDeleteFeedback(feedbackId: string) {
     if (!confirm('Voulez-vous vraiment supprimer ce feedback ?')) return;
 
     this.feedbackService.deleteFeedback(feedbackId).subscribe({
       next: () => {
-        // Retirer le feedback de la liste
         this.feedbacks = this.feedbacks.filter(f => f._id !== feedbackId);
         alert('Feedback supprimé !');
         console.log('Feedback supprimé');
@@ -153,39 +163,22 @@ export class DetailEventComponent implements OnInit {
   }
 
   /////////////////////////////////////////////////
-  // Mettre à jour un feedback
+  // Mettre à jour un feedback (TODO: ouvrir un modal)
   /////////////////////////////////////////////////
   onUpdateFeedback(f: Feedback) {
-    // TODO: Ouvrir un modal ou un formulaire pour éditer
     console.log('Modifier feedback:', f);
-
-    // Exemple de mise à jour (à adapter selon vos besoins)
-    const updatedData = {
-      content: f.content,
-      rate: f.rate
-    };
-
-    this.feedbackService.updateFeedback(f._id!, updatedData).subscribe({
-      next: (updatedFeedback: Feedback) => {
-        // Mettre à jour le feedback dans la liste
-        const index = this.feedbacks.findIndex(fb => fb._id === f._id);
-        if (index !== -1) {
-          this.feedbacks[index] = updatedFeedback;
-        }
-        alert('Feedback mis à jour !');
-        console.log('Feedback mis à jour:', updatedFeedback);
-      },
-      error: (err) => {
-        console.error('Erreur mise à jour feedback:', err);
-        alert('Erreur lors de la mise à jour');
-      }
-    });
+    // TODO: Implémenter un modal pour éditer
   }
 
   /////////////////////////////////////////////////
   // Incrémenter les likes de l'événement
   /////////////////////////////////////////////////
   incrementLike() {
+    if (!this.authService.isLoggedIn()) {
+      alert('⚠️ Vous devez être connecté pour liker un événement');
+      return;
+    }
+
     if (this.currentEvent && this.currentEvent._id) {
       this.eventService.incrementLike(this.currentEvent._id).subscribe({
         next: (updatedEvent: Eventy) => {
@@ -203,6 +196,11 @@ export class DetailEventComponent implements OnInit {
   // Décrémenter les likes de l'événement
   /////////////////////////////////////////////////
   decrementLike() {
+    if (!this.authService.isLoggedIn()) {
+      alert('⚠️ Vous devez être connecté pour unliker un événement');
+      return;
+    }
+
     if (this.currentEvent && this.currentEvent._id && this.currentEvent.nbrLike > 0) {
       this.eventService.decrementLike(this.currentEvent._id).subscribe({
         next: (updatedEvent: Eventy) => {
@@ -214,5 +212,19 @@ export class DetailEventComponent implements OnInit {
         }
       });
     }
+  }
+
+  /////////////////////////////////////////////////
+  // Vérifier si l'utilisateur connecté est l'organisateur
+  /////////////////////////////////////////////////
+  isOrganizer(): boolean {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser || !this.currentEvent) return false;
+
+    const organizerId = typeof this.currentEvent.organizerId === 'string'
+      ? this.currentEvent.organizerId
+      : this.currentEvent.organizerId._id;
+
+    return currentUser._id === organizerId || this.authService.isAdmin();
   }
 }

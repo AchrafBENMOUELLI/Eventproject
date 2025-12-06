@@ -40,9 +40,10 @@ export class FormEventComponent {
 }
   */
  ///////////////////////////////////////////////////////////////////////////
- import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { EventsService } from '../../../shared/data/events.service';
+import { AuthService } from '../../../shared/data/auth.service';
 import { Eventy } from '../../../models/eventy';
 
 @Component({
@@ -50,14 +51,14 @@ import { Eventy } from '../../../models/eventy';
   templateUrl: './form-event.component.html',
   styleUrls: ['./form-event.component.css']
 })
-export class FormEventComponent {
+export class FormEventComponent implements OnInit {
   event: Eventy = {
     title: '',
     description: '',
     date: new Date(),
     location: '',
     price: 0,
-    organizerId: 1,  // TODO: Récupérer l'ID de l'utilisateur connecté
+    organizerId: '',  // ← Sera rempli automatiquement
     imageUrl: '',
     nbPlaces: 0,
     nbrLike: 0
@@ -67,16 +68,34 @@ export class FormEventComponent {
 
   constructor(
     private dataService: EventsService,
+    private authService: AuthService,
     private router: Router
   ) {
-    // Date minimum = aujourd'hui
     const today = new Date();
     this.minDate = today.toISOString().split('T')[0];
   }
 
-  /////////////////////////////////////////////////
-  // Sauvegarder l'événement
-  /////////////////////////////////////////////////
+  ngOnInit() {
+    // Vérifier si l'utilisateur est connecté
+    const currentUser = this.authService.getCurrentUser();
+
+    if (!currentUser) {
+      alert('⚠️ Vous devez être connecté pour créer un événement');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    // Vérifier si l'utilisateur est organisateur
+    if (!this.authService.isOrganizer()) {
+      alert('⚠️ Seuls les organisateurs peuvent créer des événements');
+      this.router.navigate(['/events']);
+      return;
+    }
+
+    // Remplir automatiquement l'organizerId
+    this.event.organizerId = currentUser._id!;
+  }
+
   save() {
     // Validation des champs requis
     if (!this.event.title || !this.event.description || !this.event.date) {
@@ -99,7 +118,6 @@ export class FormEventComponent {
       return;
     }
 
-    // Validation de l'URL de l'image (optionnel)
     if (this.event.imageUrl && !this.isValidUrl(this.event.imageUrl)) {
       alert('⚠️ L\'URL de l\'image n\'est pas valide.');
       return;
@@ -111,14 +129,11 @@ export class FormEventComponent {
       next: (res) => {
         console.log('Événement créé:', res);
         alert('✅ Événement ajouté avec succès !');
-
-        // Rediriger vers la liste des événements
         this.router.navigate(['/events']);
       },
       error: (err) => {
         console.error('Erreur lors de la création:', err);
 
-        // Afficher l'erreur de validation du backend
         if (err.error && err.error.message) {
           alert(`❌ Erreur: ${err.error.message}`);
         } else {
@@ -128,9 +143,6 @@ export class FormEventComponent {
     });
   }
 
-  /////////////////////////////////////////////////
-  // Valider une URL
-  /////////////////////////////////////////////////
   private isValidUrl(url: string): boolean {
     try {
       new URL(url);
@@ -140,26 +152,21 @@ export class FormEventComponent {
     }
   }
 
-  /////////////////////////////////////////////////
-  // Annuler et retourner à la liste
-  /////////////////////////////////////////////////
   cancel() {
     if (confirm('Êtes-vous sûr de vouloir annuler ? Les données non sauvegardées seront perdues.')) {
       this.router.navigate(['/events']);
     }
   }
 
-  /////////////////////////////////////////////////
-  // Réinitialiser le formulaire
-  /////////////////////////////////////////////////
   reset() {
+    const currentUser = this.authService.getCurrentUser();
     this.event = {
       title: '',
       description: '',
       date: new Date(),
       location: '',
       price: 0,
-      organizerId: 1,
+      organizerId: currentUser?._id || '',
       imageUrl: '',
       nbPlaces: 0,
       nbrLike: 0

@@ -194,28 +194,6 @@
       <div *ngIf="p.hasError('min')">Le prix doit être positif ou zéro</div>
     </div>
   </div>
-
-  <!-- Organizer ID -->
-  <div class="col-md-6">
-    <label for="organizerId" class="form-label">ID Organisateur <span class="text-danger">*</span></label>
-    <input
-      type="number"
-      [(ngModel)]="event.organizerId"
-      class="form-control"
-      id="organizerId"
-      name="organizerId"
-      min="1"
-      required
-      #o="ngModel"
-      placeholder="1"
-    >
-    <small class="text-muted">Identifiant de l'organisateur</small>
-    <div class="alert alert-danger mt-2" *ngIf="o.touched && o.invalid">
-      <div *ngIf="o.hasError('required')">Ce champ est obligatoire</div>
-      <div *ngIf="o.hasError('min')">La valeur doit être au moins 1</div>
-    </div>
-  </div>
-
   <!-- Image URL -->
   <div class="col-md-6">
     <label for="imageUrl" class="form-label">URL de l'image <span class="text-danger">*</span></label>

@@ -1,10 +1,8 @@
-export class Feedback{
-  //id:number;
+export class Feedback {
   _id?: string;
-  id_user:number;
-  //id_event:number;
-  id_event: string;
-  content:string;
-  rate:number;
-  date:Date;
+  id_user: string | any;
+  id_event: string | any;
+  content: string;
+  rate: number;
+  date: Date;
 }

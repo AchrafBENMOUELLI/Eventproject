@@ -1,13 +1,11 @@
-export class User{
-  id:number;
-  firstname:string;
-  lastname:string;
-  email:string;
-  password:string;
-  adresse:{
-    street:string;
-    city:string;
-    zipCode:string;
-  }
-  phones:string[];
+export class User {
+  _id?: string;
+  email: string;
+  password?: string; 
+  firstName: string;
+  lastName: string;
+  role: 'user' | 'organizer' | 'admin';
+  isActive?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

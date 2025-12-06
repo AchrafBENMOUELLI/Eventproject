@@ -1,0 +1,153 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <h2 class="text-center mb-4">📝 Inscription</h2>
+
+          <!-- Error Message -->
+          <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+            {{ errorMessage }}
+          </div>
+
+          <!-- Register Form -->
+          <form #registerForm="ngForm" (ngSubmit)="onSubmit(registerForm)">
+
+            <!-- First Name -->
+            <div class="mb-3">
+              <label for="firstName" class="form-label">Prénom <span class="text-danger">*</span></label>
+              <input
+                type="text"
+                class="form-control"
+                id="firstName"
+                name="firstName"
+                [(ngModel)]="user.firstName"
+                required
+                minlength="2"
+                #firstName="ngModel"
+                placeholder="Votre prénom"
+              >
+              <div *ngIf="firstName.touched && firstName.invalid" class="text-danger small mt-1">
+                <div *ngIf="firstName.hasError('required')">Prénom requis</div>
+                <div *ngIf="firstName.hasError('minlength')">Minimum 2 caractères</div>
+              </div>
+            </div>
+
+            <!-- Last Name -->
+            <div class="mb-3">
+              <label for="lastName" class="form-label">Nom <span class="text-danger">*</span></label>
+              <input
+                type="text"
+                class="form-control"
+                id="lastName"
+                name="lastName"
+                [(ngModel)]="user.lastName"
+                required
+                minlength="2"
+                #lastName="ngModel"
+                placeholder="Votre nom"
+              >
+              <div *ngIf="lastName.touched && lastName.invalid" class="text-danger small mt-1">
+                <div *ngIf="lastName.hasError('required')">Nom requis</div>
+                <div *ngIf="lastName.hasError('minlength')">Minimum 2 caractères</div>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="mb-3">
+              <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                name="email"
+                [(ngModel)]="user.email"
+                required
+                email
+                #email="ngModel"
+                placeholder="votre.email@example.com"
+              >
+              <div *ngIf="email.touched && email.invalid" class="text-danger small mt-1">
+                <div *ngIf="email.hasError('required')">Email requis</div>
+                <div *ngIf="email.hasError('email')">Email invalide</div>
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-3">
+              <label for="password" class="form-label">Mot de passe <span class="text-danger">*</span></label>
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                name="password"
+                [(ngModel)]="user.password"
+                required
+                minlength="6"
+                #password="ngModel"
+                placeholder="Minimum 6 caractères"
+              >
+              <div *ngIf="password.touched && password.invalid" class="text-danger small mt-1">
+                <div *ngIf="password.hasError('required')">Mot de passe requis</div>
+                <div *ngIf="password.hasError('minlength')">Minimum 6 caractères</div>
+              </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="mb-3">
+              <label for="confirmPassword" class="form-label">Confirmer le mot de passe <span class="text-danger">*</span></label>
+              <input
+                type="password"
+                class="form-control"
+                id="confirmPassword"
+                name="confirmPassword"
+                [(ngModel)]="confirmPassword"
+                required
+                #confirmPwd="ngModel"
+                placeholder="Retapez votre mot de passe"
+              >
+              <div *ngIf="confirmPwd.touched && confirmPassword !== user.password" class="text-danger small mt-1">
+                Les mots de passe ne correspondent pas
+              </div>
+            </div>
+
+            <!-- Role -->
+            <div class="mb-3">
+              <label for="role" class="form-label">Type de compte <span class="text-danger">*</span></label>
+              <select
+                class="form-select"
+                id="role"
+                name="role"
+                [(ngModel)]="user.role"
+                required
+              >
+                <option value="user">👤 Utilisateur</option>
+                <option value="organizer">🎫 Organisateur</option>
+              </select>
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              class="btn btn-primary w-100 mb-3"
+              [disabled]="registerForm.invalid || isLoading || user.password !== confirmPassword"
+            >
+              <span *ngIf="!isLoading">✅ S'inscrire</span>
+              <span *ngIf="isLoading">
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Inscription en cours...
+              </span>
+            </button>
+
+            <!-- Login Link -->
+            <div class="text-center">
+              <p class="mb-0">Vous avez déjà un compte ?
+                <a (click)="goToLogin()" class="text-primary" style="cursor: pointer;">Se connecter</a>
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
