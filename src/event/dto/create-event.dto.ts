@@ -6,7 +6,7 @@ export const CreateEventSchema = z.object({
   date: z.coerce.date(),
   location: z.string().min(3).max(200),
   price: z.number().min(0),
-  organizerId: z.number().int().positive(),
+  organizerId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid MongoDB ObjectId'),
   imageUrl: z.string().url(),
   nbPlaces: z.number().int().min(0),
   nbrLike: z.number().int().min(0).default(0),

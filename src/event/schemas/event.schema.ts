@@ -1,12 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 export type EventDocument = Eventy & Document;
 
-@Schema()
+@Schema({ timestamps: true })
 export class Eventy {
-  // ❌ Supprimé : @Prop({ required: true }) id: number;
-
   @Prop({ required: true })
   title: string;
 
@@ -22,8 +20,8 @@ export class Eventy {
   @Prop({ required: true })
   price: number;
 
-  @Prop({ required: true })
-  organizerId: number;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
+  organizerId: MongooseSchema.Types.ObjectId;
 
   @Prop({ required: true })
   imageUrl: string;

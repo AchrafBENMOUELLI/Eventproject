@@ -30,22 +30,31 @@ export class FeedbackService {
   }
 
   ////////////////////////////////////
-  // READ ALL
-  ////////////////////////////////////
-  async findAll(): Promise<Feedback[]> {
-    return this.feedbackModel.find().exec();
-  }
+// READ ALL WITH USER INFO
+////////////////////////////////////
+async findAll(): Promise<Feedback[]> {
+  return this.feedbackModel
+    .find()
+    .populate('id_user', 'firstName lastName email')
+    .populate('id_event', 'title') 
+    .exec();
+}
 
-  ////////////////////////////////////
-  // READ ONE
-  ////////////////////////////////////
-  async findOne(id: string): Promise<Feedback> {
-    const feedback = await this.feedbackModel.findById(id).exec();
-    if (!feedback) {
-      throw new NotFoundException(`Feedback with ID ${id} not found`);
-    }
-    return feedback;
+////////////////////////////////////
+// READ ONE WITH USER INFO
+////////////////////////////////////
+async findOne(id: string): Promise<Feedback> {
+  const feedback = await this.feedbackModel
+    .findById(id)
+    .populate('id_user', 'firstName lastName email')
+    .populate('id_event', 'title')
+    .exec();
+  
+  if (!feedback) {
+    throw new NotFoundException(`Feedback with ID ${id} not found`);
   }
+  return feedback;
+}
 
   ////////////////////////////////////
   // READ BY USER
@@ -95,4 +104,6 @@ Permet d'utiliser await à l'intérieur
 Retourne automatiquement une Promise
 
 Promise :Objet représentant une opération future
+
+populate() est une fonction de Mongoose qui remplace automatiquement une référence ObjectId par l'objet complet de la collection référencée.
 */

@@ -3,13 +3,13 @@ import { Document, Schema as MongooseSchema } from 'mongoose';
 
 export type FeedbackDocument = Feedback & Document;
 
-@Schema()
+@Schema({ timestamps: true })
 export class Feedback {
-  @Prop({ required: true })
-  id_user: number;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true }) 
+  id_user: MongooseSchema.Types.ObjectId;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Eventy', required: true })
-  id_event: MongooseSchema.Types.ObjectId;  // ← Référence ObjectId
+  id_event: MongooseSchema.Types.ObjectId;
 
   @Prop({ required: true })
   content: string;
@@ -22,8 +22,3 @@ export class Feedback {
 }
 
 export const FeedbackSchema = SchemaFactory.createForClass(Feedback);
-
-
-//@Schema Marks the class as a MongoDB document
-//@Prop Marks the class as a MongoDB document
-//SchemaFactory.createForClass(Feedback) : Converts your TypeScript class into an actual Mongoose schema

@@ -24,22 +24,29 @@ export class EventService {
   }
 
   ////////////////////////////////////
-  // READ ALL
-  ////////////////////////////////////
-  async findAll(): Promise<Eventy[]> {
-    return this.eventModel.find().exec();
-  }
+// READ ALL WITH ORGANIZER INFO
+////////////////////////////////////
+async findAll(): Promise<Eventy[]> {
+  return this.eventModel
+    .find()
+    .populate('organizerId', 'firstName lastName email')  // ← Populate organizer
+    .exec();
+}
 
-  ////////////////////////////////////
-  // READ ONE
-  ////////////////////////////////////
-  async findOne(id: string): Promise<Eventy> {
-    const event = await this.eventModel.findById(id).exec();
-    if (!event) {
-      throw new NotFoundException(`Event with ID ${id} not found`);
-    }
-    return event;
+////////////////////////////////////
+// READ ONE WITH ORGANIZER INFO
+////////////////////////////////////
+async findOne(id: string): Promise<Eventy> {
+  const event = await this.eventModel
+    .findById(id)
+    .populate('organizerId', 'firstName lastName email')  // ← Populate organizer
+    .exec();
+  
+  if (!event) {
+    throw new NotFoundException(`Event with ID ${id} not found`);
   }
+  return event;
+}
 
   ////////////////////////////////////
   // READ BY ORGANIZER
